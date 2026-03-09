@@ -1,0 +1,47 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - test
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  prettier:
+    if: github.base_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Prettier Fix
+        run: npm run prettier:fix
+
+      - name: Commit formatted code
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git diff --staged --quiet || git commit -m "auto fix prettier formatting"
+          git push
+
+  eslint-and-coverage:
+    if: github.base_ref == 'test'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Run ESLint
+        run: npm run lint
+      - name: Run Coverage
+        run: npm run test
