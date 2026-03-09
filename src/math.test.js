@@ -1,5 +1,4 @@
 import { add, subtract, multiply, divide, modulus } from './math.js';
-import { add, subtract, multiply, divide } from './math.js';
 
 test('adds two numbers', () => {
   expect(add(2, 3)).toBe(5);
