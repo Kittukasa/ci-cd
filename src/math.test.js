@@ -24,6 +24,6 @@ test('modulus of two numbers', () => {
   expect(modulus(10, 3)).toBe(1);
 });
 
-test('square of a number',()=>{
-expect(square(4)).toBe(16)
-})
+test('square of a number', () => {
+  expect(square(4)).toBe(16);
+});
