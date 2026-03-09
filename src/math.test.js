@@ -1,3 +1,4 @@
+import { add, subtract, multiply, divide, modulus } from './math.js';
 import { add, subtract, multiply, divide } from './math.js';
 
 test('adds two numbers', () => {
@@ -18,4 +19,8 @@ test('divides two numbers', () => {
 
 test('throws error when dividing by zero', () => {
   expect(() => divide(10, 0)).toThrow('Cannot divide by zero');
+});
+
+test('modulus of two numbers', () => {
+  expect(modulus(10, 3)).toBe(1);
 });
