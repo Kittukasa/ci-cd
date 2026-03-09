@@ -6,7 +6,7 @@
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --coverage"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
