@@ -20,3 +20,7 @@ export function divide(a, b) {
 export function modulus(a, b) {
   return a % b;
 }
+
+export function square(n){
+return n*n
+}
