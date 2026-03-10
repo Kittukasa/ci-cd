@@ -11,6 +11,8 @@ export default [
         it: 'readonly',
         beforeEach: 'readonly',
         afterEach: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
       },
     },
     rules: {
