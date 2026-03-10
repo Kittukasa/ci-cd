@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   pull_request:
@@ -6,13 +6,16 @@ on:
       - dev
       - test
       - main
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   prettier:
-    if: github.base_ref == 'dev'
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +38,7 @@ jobs:
           git push
 
   eslint-and-coverage:
-    if: github.base_ref == 'test'
+    if: github.event_name == 'pull_request' && github.base_ref == 'test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -45,3 +48,39 @@ jobs:
         run: npm run lint
       - name: Run Coverage
         run: npm run test
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker image to ECR
+        run: |
+          docker build -t ci-cd-app .
+          docker tag ci-cd-app:latest 592965056877.dkr.ecr.ap-south-1.amazonaws.com/ci-cd-app:latest
+          docker push 592965056877.dkr.ecr.ap-south-1.amazonaws.com/ci-cd-app:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 592965056877.dkr.ecr.ap-south-1.amazonaws.com
+            docker pull 592965056877.dkr.ecr.ap-south-1.amazonaws.com/ci-cd-app:latest
+            docker stop ci-cd-app || true
+            docker rm ci-cd-app || true
+            docker run -d --name ci-cd-app -p 80:3000 592965056877.dkr.ecr.ap-south-1.amazonaws.com/ci-cd-app:latest
